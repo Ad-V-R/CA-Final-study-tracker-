@@ -1,0 +1,46 @@
+{
+  "name": "param",
+  "version": "1.0.0",
+  "description": "Beta ver. 1.0 Prepared by Adarsh R (CA Finalist)",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win"
+  },
+  "keywords": [
+    "ca-final",
+    "study-tracker",
+    "pomodoro",
+    "param",
+    "google-drive-sync"
+  ],
+  "author": "Adarsh R (CA Finalist)",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^28.2.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.param.focus.tracker",
+    "productName": "Param",
+    "compression": "normal",
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico"
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "index.html",
+      "style.css",
+      "app.js",
+      "main.js",
+      "preload.js",
+      "README.md",
+      "TUTORIAL.md",
+      "assets/**/*",
+      "icon.ico"
+    ]
+  }
+}

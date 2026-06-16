@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Param - CA Final Focus Tracker</title>
+    <!-- Google Fonts: Outfit (UI) and JetBrains Mono (Timer/Stats) -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Interactive Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Left Sidebar Navigation -->
+    <header class="app-header">
+        <div class="logo">
+            <i class="fa-solid fa-crown logo-icon"></i>
+            <span class="logo-text">Param<span class="text-accent">Focus</span></span>
+            <button id="sidebar-toggle-btn" class="sidebar-toggle-btn" onclick="app.toggleSidebar()" title="Toggle Sidebar">
+                <i class="fa-solid fa-angles-left"></i>
+            </button>
+        </div>
+        <nav class="app-nav">
+            <button class="nav-btn active" data-tab="dashboard" title="Dashboard">
+                <i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span>
+            </button>
+            <button class="nav-btn" data-tab="timer" title="Focus Timer">
+                <i class="fa-solid fa-stopwatch"></i> <span>Focus Timer</span>
+            </button>
+            <button class="nav-btn" data-tab="planner" title="Target Planner">
+                <i class="fa-solid fa-list-check"></i> <span>Target Planner</span>
+            </button>
+            <button class="nav-btn" data-tab="revision" title="Revision Rounds">
+                <i class="fa-solid fa-rotate"></i> <span>Revision Rounds</span>
+            </button>
+            <button class="nav-btn" data-tab="studyhub" title="Study Hub">
+                <i class="fa-solid fa-graduation-cap"></i> <span>Study Hub</span>
+            </button>
+            <button class="nav-btn" data-tab="dailytracker" title="Daily Tracker">
+                <i class="fa-solid fa-heart-pulse"></i> <span>Daily Tracker</span>
+            </button>
+            <button class="nav-btn" data-tab="hobbies" title="Hobbies">
+                <i class="fa-solid fa-icons"></i> <span>Hobbies</span>
+            </button>
+            <button class="nav-btn" data-tab="userguide" title="User Guide">
+                <i class="fa-solid fa-circle-question"></i> <span>User Guide</span>
+            </button>
+            <button class="nav-btn" data-tab="notebooklm" title="NotebookLM Hub">
+                <i class="fa-solid fa-brain"></i> <span>NotebookLM Hub</span>
+            </button>
+            <button class="nav-btn" data-tab="analytics" title="Analytics">
+                <i class="fa-solid fa-chart-line"></i> <span>Analytics</span>
+            </button>
+        </nav>
+        <div class="workspace-selector-container">
+            <label for="workspace-select">Workspace:</label>
+            <select id="workspace-select" class="workspace-select" onchange="app.handleSwitchWorkspace(this.value)">
+                <!-- Dynamically populated -->
+            </select>
+            <button class="btn-create-workspace-shortcut" onclick="app.toggleWorkspaceModal(true)" title="Create New Workspace">
+                <i class="fa-solid fa-plus-circle"></i> Create New
+            </button>
+            <img id="sidebar-active-avatar" class="sidebar-active-avatar" src="" onclick="app.cycleWorkspaceShortcut()">
+        </div>
+        <div class="header-actions">
+            <div id="countdown-badge" class="countdown-badge">
+                <span id="countdown-text">Loading Attempt...</span>
+            </div>
+            <div class="sidebar-action-buttons">
+                <button id="lock-toggle-btn" class="icon-btn" title="Lock Admin Actions" style="display: none;">
+                    <i class="fa-solid fa-lock-open"></i>
+                </button>
+                <button id="settings-btn" class="icon-btn" title="Settings">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Quote Bar -->
+    <div id="quote-bar" class="quote-bar">
+        <div class="quote-content" id="quote-ticker-content">
+            <i class="fa-solid fa-quote-left"></i>
+            <span id="quote-ticker-text">Loading daily motivation...</span>
+            <i class="fa-solid fa-quote-right"></i>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="app-container">
+        <!-- DASHBOARD TAB -->
+        <section id="dashboard" class="tab-content active">
+            <div class="welcome-banner">
+                <div class="welcome-text">
+                    <h1 id="welcome-title">Achieve the Prefix "CA"</h1>
+                    <p class="subtitle">Param Focus & Revision Tracker | Beta ver. 1.0 Prepared by Adarsh R (CA Finalist)</p>
+                </div>
+                <div class="quick-stats-badge">
+                    <span id="streak-count">0</span>
+                    <span class="badge-label"><i class="fa-solid fa-fire text-warn"></i> Day Streak</span>
+                </div>
+            </div>
+
+            <!-- Profile & Quest grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;" class="hide-mobile">
+                <!-- Profile Card -->
+                <div class="profile-stats-card">
+                    <div class="profile-avatar-wrapper">
+                        <img id="profile-avatar" class="profile-avatar-img" src="assets/images/characters/steve.png" alt="Avatar">
+                    </div>
+                    <div class="profile-meta-info">
+                        <div class="profile-username-title">
+                            <span id="profile-username">SteveCraft</span>
+                            <span id="profile-rank" class="profile-level-badge">Novice Initiate</span>
+                        </div>
+                        <div class="profile-character-name" id="profile-char-template">Minecraft Steve</div>
+                        <div class="xp-progress-bar-container">
+                            <div class="xp-progress-meta">
+                                <span>Level <span id="profile-level">1</span></span>
+                                <span><span id="profile-xp-current">0</span> / <span id="profile-xp-next">500</span> XP</span>
+                            </div>
+                            <div class="xp-progress-bg">
+                                <div id="profile-xp-fill" class="xp-progress-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quest Panel -->
+                <div class="campaign-quest-panel">
+                    <div class="boss-battle-layout">
+                        <div class="boss-image-wrapper">
+                            <img id="boss-image" class="boss-image" src="assets/images/characters/dragon.png" alt="Boss">
+                        </div>
+                        <div class="boss-battle-info">
+                            <div class="boss-name-title">
+                                <i class="fa-solid fa-dragon"></i> <span id="boss-name">Loading Boss...</span>
+                            </div>
+                            <div class="boss-description" id="boss-description">Loading chapter description...</div>
+                            <div class="boss-hp-bar-container">
+                                <div class="boss-hp-meta">
+                                    <span>Boss HP</span>
+                                    <span><span id="boss-hp-current">100</span> / <span id="boss-hp-max">100</span> HP</span>
+                                </div>
+                                <div class="boss-hp-bg">
+                                    <div id="boss-hp-fill" class="boss-hp-fill"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="quest-status-log" id="quest-log-text">Quest started. Focus to deal damage to the boss!</div>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card card-engross">
+                    <div class="card-header">
+                        <span class="card-title">Engross Focus (Today)</span>
+                        <i class="fa-solid fa-bolt icon-engross"></i>
+                    </div>
+                    <div class="card-value" id="dash-engross-time">0h 00m</div>
+                    <div class="card-footer">Deep study & problem solving</div>
+                </div>
+
+                <div class="stat-card card-regain">
+                    <div class="card-header">
+                        <span class="card-title">Regain Focus (Today)</span>
+                        <i class="fa-solid fa-arrows-spin icon-regain"></i>
+                    </div>
+                    <div class="card-value" id="dash-regain-time">0h 00m</div>
+                    <div class="card-footer">Active recall & revisions</div>
+                </div>
+
+                <div class="stat-card card-targets">
+                    <div class="card-header">
+                        <span class="card-title">Targets Completed</span>
+                        <i class="fa-solid fa-circle-check icon-targets"></i>
+                    </div>
+                    <div class="card-value" id="dash-targets-done">0/0</div>
+                    <div class="card-footer" id="dash-targets-ratio">0% Completed</div>
+                </div>
+
+                <div class="stat-card card-revision">
+                    <div class="card-header">
+                        <span class="card-title">Syllabus Coverage</span>
+                        <i class="fa-solid fa-chart-simple icon-rev"></i>
+                    </div>
+                    <div class="card-value" id="dash-revision-pct">0%</div>
+                    <div class="card-footer">Avg. progress across 6 papers</div>
+                </div>
+            </div>
+
+            <!-- Dashboard Content Layout -->
+            <div class="dashboard-layout">
+                <!-- Left Column: Quick Focus Timer & Current Targets -->
+                <div class="layout-main">
+                    <!-- Active Timer Quick Widget -->
+                    <div class="glass-panel quick-timer-widget">
+                        <div class="panel-header">
+                            <h3><i class="fa-solid fa-stopwatch text-accent"></i> Active Session</h3>
+                            <button class="text-link-btn" onclick="app.switchTab('timer')">Go to Timer <i class="fa-solid fa-arrow-right"></i></button>
+                        </div>
+                        <div class="timer-widget-content">
+                            <div class="widget-clock-display" id="widget-timer-display">25:00</div>
+                            <div class="widget-timer-info">
+                                <span class="tag-badge engross" id="widget-timer-tag">Engross</span>
+                                <span class="widget-task-name" id="widget-timer-task">No active target</span>
+                            </div>
+                            <div class="widget-timer-controls">
+                                <button class="widget-ctrl-btn" id="widget-btn-play"><i class="fa-solid fa-play"></i></button>
+                                <button class="widget-ctrl-btn" id="widget-btn-pause" style="display:none;"><i class="fa-solid fa-pause"></i></button>
+                                <button class="widget-ctrl-btn text-warn" id="widget-btn-reset"><i class="fa-solid fa-rotate-left"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Urgent Targets -->
+                    <div class="glass-panel dashboard-targets">
+                        <div class="panel-header">
+                            <h3><i class="fa-solid fa-thumbtack text-accent"></i> Today's Focus Checklist</h3>
+                            <button class="text-link-btn" onclick="app.switchTab('planner')">Planner Hub <i class="fa-solid fa-arrow-right"></i></button>
+                        </div>
+                        <div class="dash-target-list" id="dash-urgent-targets">
+                            <!-- Populated by JS -->
+                            <div class="empty-state">
+                                <i class="fa-solid fa-clipboard-list"></i>
+                                <p>No targets set for today. Plan ahead in the planner!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Revision Progress & Analytics Summary -->
+                <div class="layout-side">
+                    <!-- Revision Mini Overview -->
+                    <div class="glass-panel revision-summary-panel">
+                        <div class="panel-header">
+                            <h3><i class="fa-solid fa-list-check text-accent"></i> Syllabus & Revisions</h3>
+                            <button class="text-link-btn" onclick="app.switchTab('revision')">Track Revisions <i class="fa-solid fa-arrow-right"></i></button>
+                        </div>
+                        <div class="rev-progress-list" id="dash-rev-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- NotebookLM Integration Quick Promo -->
+                    <div class="glass-panel notebooklm-promo">
+                        <div class="promo-header">
+                            <span class="promo-badge">INTEGRATION</span>
+                            <h3>Sync with NotebookLM</h3>
+                        </div>
+                        <p class="promo-desc">Export your targets, weak concepts, and revision summaries as structured data. Upload it to NotebookLM to generate custom audio briefings or mock test queries!</p>
+                        <button class="btn btn-primary btn-full" onclick="app.switchTab('notebooklm')">
+                            <i class="fa-solid fa-brain"></i> Open NotebookLM Hub
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOCUS TIMER TAB -->
+        <section id="timer" class="tab-content">
+            <div class="timer-container glass-panel">
+                <div class="timer-tabs">
+                    <button class="timer-tab-btn active" id="timer-tab-engross" onclick="app.setTimerMode('engross')">
+                        <i class="fa-solid fa-bolt"></i> Engross Mode
+                    </button>
+                    <button class="timer-tab-btn" id="timer-tab-regain" onclick="app.setTimerMode('regain')">
+                        <i class="fa-solid fa-arrows-spin"></i> Regain Mode
+                    </button>
+                </div>
+
+                <div class="timer-display-wrapper">
+                    <!-- SVG Progress Circle -->
+                    <svg class="progress-ring" width="300" height="300">
+                        <circle class="progress-ring-bg" stroke="rgba(255,255,255,0.05)" stroke-width="12" fill="transparent" r="130" cx="150" cy="150"/>
+                        <circle class="progress-ring-circle" id="timer-progress-ring" stroke="var(--accent-color)" stroke-width="12" stroke-linecap="round" fill="transparent" r="130" cx="150" cy="150"/>
+                    </svg>
+                    <div class="timer-clock">
+                        <div class="time-text" id="timer-display">25:00</div>
+                        <div class="time-label" id="timer-status-label">Ready to Focus</div>
+                    </div>
+                </div>
+
+                <!-- Active Task Info -->
+                <div class="timer-active-task-box">
+                    <span class="active-task-subtitle">ACTIVE TARGET</span>
+                    <h3 id="timer-active-task-title">No Active Target Selected</h3>
+                    <p id="timer-active-task-desc" class="active-task-subtext">Select or create a target from the Planner to log study hours to it.</p>
+                </div>
+
+                <!-- Timer Controls -->
+                <div class="timer-controls">
+                    <button class="btn-circle btn-secondary" id="timer-btn-reset" title="Reset Timer">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                    <button class="btn-circle btn-primary btn-large" id="timer-btn-play-pause" title="Start Timer">
+                        <i class="fa-solid fa-play"></i>
+                    </button>
+                    <button class="btn-circle btn-secondary" id="timer-btn-skip" title="Skip Session">
+                        <i class="fa-solid fa-forward"></i>
+                    </button>
+                </div>
+
+                <!-- Study Sound Options -->
+                <div class="ambient-sounds">
+                    <span class="sound-label"><i class="fa-solid fa-volume-high"></i> Focus Audio:</span>
+                    <div class="sound-options">
+                        <button class="sound-btn active" data-sound="none">None</button>
+                        <button class="sound-btn" data-sound="white">White Noise</button>
+                        <button class="sound-btn" data-sound="brown">Brown Noise</button>
+                        <button class="sound-btn" data-sound="binaural">Binaural Beats</button>
+                        <button class="sound-btn" data-sound="lofi" id="lofi-sound-btn">Lofi Study Radio <span id="lofi-equalizer" style="display:none;" class="lofi-equalizer"><span class="lofi-bar"></span><span class="lofi-bar"></span><span class="lofi-bar"></span></span></button>
+                    </div>
+                </div>
+
+                <!-- Timer Settings Quick Panel -->
+                <div class="timer-durations-settings">
+                    <div class="duration-input-group">
+                        <label>Engross Duration</label>
+                        <select id="setting-engross-duration">
+                            <option value="15">15 Min</option>
+                            <option value="25" selected>25 Min</option>
+                            <option value="45">45 Min</option>
+                            <option value="50">50 Min</option>
+                            <option value="60">60 Min</option>
+                            <option value="90">90 Min</option>
+                        </select>
+                    </div>
+                    <div class="duration-input-group">
+                        <label>Regain Duration</label>
+                        <select id="setting-regain-duration">
+                            <option value="5" selected>5 Min</option>
+                            <option value="10">10 Min</option>
+                            <option value="15">15 Min</option>
+                            <option value="20">20 Min</option>
+                            <option value="30">30 Min</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TARGET PLANNER TAB -->
+        <section id="planner" class="tab-content">
+            <div class="planner-layout">
+                <!-- Left: Create Task Panel -->
+                <div class="glass-panel planner-form-panel">
+                    <h3><i class="fa-solid fa-plus-circle text-accent"></i> Add Target</h3>
+                    <form id="task-form" class="planner-form">
+                        <div class="form-group">
+                            <label for="task-title">Target Description / Topic</label>
+                            <input type="text" id="task-title" placeholder="e.g., Valuation of Goodwill & Shares questions" required>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="task-subject">CA Paper</label>
+                                <select id="task-subject" required>
+                                    <option value="FR">Paper 1: FR (Financial Reporting)</option>
+                                    <option value="AFM">Paper 2: AFM (Advanced Financial Management)</option>
+                                    <option value="Audit">Paper 3: Advanced Auditing</option>
+                                    <option value="DT">Paper 4: Direct Taxes (DT)</option>
+                                    <option value="IDT">Paper 5: Indirect Taxes (IDT)</option>
+                                    <option value="IBS">Paper 6: Integrated Business Solutions</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="task-tag">Focus Style</label>
+                                <select id="task-tag" required>
+                                    <option value="engross">Engross (Deep Study / Solve)</option>
+                                    <option value="regain">Regain (Recall / Notes / Weak Area)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="task-round">Revision Round</label>
+                                <select id="task-round" required>
+                                    <option value="0">Initial Study (Fresh Reading)</option>
+                                    <option value="1" selected>Revision Round 1</option>
+                                    <option value="2">Revision Round 2</option>
+                                    <option value="3">Revision Round 3 (Super 50 / LDR)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="task-est-pomodoros">Est. Pomodoros</label>
+                                <input type="number" id="task-est-pomodoros" min="1" max="20" value="2" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="task-notes">Study Notes / Chapters (Optional)</label>
+                            <textarea id="task-notes" placeholder="Specify page numbers, reference books, questions to solve, or weak concepts to clarify..." rows="3"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-full">
+                            <i class="fa-solid fa-circle-plus"></i> Add to Tracker Checklist
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Right: Targets Dashboard -->
+                <div class="glass-panel planner-list-panel">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-list text-accent"></i> Active Targets Checklist</h3>
+                        <div class="filter-controls">
+                            <select id="filter-subject" class="small-select">
+                                <option value="all">All Subjects</option>
+                                <option value="FR">FR</option>
+                                <option value="AFM">AFM</option>
+                                <option value="Audit">Audit</option>
+                                <option value="DT">DT</option>
+                                <option value="IDT">IDT</option>
+                                <option value="IBS">IBS</option>
+                            </select>
+                            <select id="filter-status" class="small-select">
+                                <option value="active">Active (To Do / Doing)</option>
+                                <option value="completed">Completed</option>
+                                <option value="all">All Targets</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="targets-checklist" id="planner-tasks-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- REVISION ROUNDS TAB -->
+        <section id="revision" class="tab-content">
+            <div class="glass-panel">
+                <div class="panel-header-desc">
+                    <h2><i class="fa-solid fa-rotate text-accent"></i> CA Final Revision Round Matrix</h2>
+                    <p class="subtitle">CA Final preparation requires multiple sweeps of the syllabus. Log your completion status across three revision cycles for each paper.</p>
+                </div>
+
+                <div class="revision-matrix-grid">
+                    <!-- Subject rows will be populated here -->
+                    <div class="revision-matrix-header">
+                        <div class="header-cell subject-col">Subject / Paper</div>
+                        <div class="header-cell round-col">Initial Reading</div>
+                        <div class="header-cell round-col">Revision 1 (Detailed)</div>
+                        <div class="header-cell round-col">Revision 2 (Summary/Sums)</div>
+                        <div class="header-cell round-col">Revision 3 (LDR/Mock)</div>
+                        <div class="header-cell action-col">Progress</div>
+                    </div>
+                    
+                    <div id="revision-matrix-body">
+                        <!-- Dynamically generated subjects rows -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STUDY HUB TAB -->
+        <section id="studyhub" class="tab-content">
+            <div class="welcome-banner">
+                <div class="welcome-text">
+                    <h1><i class="fa-solid fa-graduation-cap text-accent"></i> Study Hub</h1>
+                    <p class="subtitle">Subject-wise strategies by AIR 1 and scientific rules for effective study</p>
+                </div>
+            </div>
+
+            <div class="study-hub-grid">
+                <!-- Left Column: AIR 1 Strategies -->
+                <div class="strategies-panel glass-panel">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-award text-accent"></i> AIR 1 Subject Strategies</h3>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Click on any subject to expand the top-ranker strategies and priority focus areas.</p>
+                    
+                    <div class="strategy-accordion">
+                        <!-- FR Accordion -->
+                        <div class="accordion-item" onclick="app.toggleAccordion(this)">
+                            <button class="accordion-header">
+                                <span>Paper 1: Financial Reporting (FR)</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    <strong>AIR 1 Focus Areas:</strong>
+                                    <ul>
+                                        <li><strong>Ind AS 109 (Financial Instruments), 103 (Business Combinations), and 110 (Consolidated Financial Statements):</strong> Together these carry 30-40% weightage. Solve all illustrations.</li>
+                                        <li><strong>Ind AS 115 (Revenue) & Ind AS 116 (Leases):</strong> High chance of practical questions. Pay attention to transition provisions.</li>
+                                        <li>Write down journal entries rather than just reading them. The exam checks exact debit/credit entries and presentation.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AFM Accordion -->
+                        <div class="accordion-item" onclick="app.toggleAccordion(this)">
+                            <button class="accordion-header">
+                                <span>Paper 2: Advanced Financial Management (AFM)</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    <strong>AIR 1 Focus Areas:</strong>
+                                    <ul>
+                                        <li><strong>Forex & Derivatives:</strong> Master the pricing of futures, options, and interest rate swaps. Practice cross-currency rates.</li>
+                                        <li><strong>Portfolio Management & Mutual Funds:</strong> Highly scoring. Practice Sharpe, Treynor, and Jensen's alpha calculations.</li>
+                                        <li>Keep a separate formula book. Revise all formulas daily in the morning to retain them under exam pressure.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Audit Accordion -->
+                        <div class="accordion-item" onclick="app.toggleAccordion(this)">
+                            <button class="accordion-header">
+                                <span>Paper 3: Advanced Auditing</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    <strong>AIR 1 Focus Areas:</strong>
+                                    <ul>
+                                        <li><strong>Professional Ethics & Liabilities of Auditor:</strong> 16-20 marks. Memorize clause numbers, parts, and schedules exactly.</li>
+                                        <li><strong>Standards on Auditing (SAs):</strong> Focus on SA 200, 300, 500, and 700 series. Quote SA numbers and standard titles in bold.</li>
+                                        <li>Use ICAI terminology. General language gets lower marks; use words like "material misstatement", "professional skepticism", and "pervasive".</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DT Accordion -->
+                        <div class="accordion-item" onclick="app.toggleAccordion(this)">
+                            <button class="accordion-header">
+                                <span>Paper 4: Direct Taxes (DT)</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    <strong>AIR 1 Focus Areas:</strong>
+                                    <ul>
+                                        <li><strong>Corporate Tax & MAT/AMT:</strong> Master calculations of Business Income, adjustments, and Minimum Alternate Tax.</li>
+                                        <li><strong>Transfer Pricing & Non-Resident Taxation:</strong> Master Section 9, double taxation relief (Sections 90/91), and Transfer Pricing methods.</li>
+                                        <li>Solve amendments from the last 6 months. Amendments are almost always tested for 15-20 marks.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- IDT Accordion -->
+                        <div class="accordion-item" onclick="app.toggleAccordion(this)">
+                            <button class="accordion-header">
+                                <span>Paper 5: Indirect Taxes (IDT)</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    <strong>AIR 1 Focus Areas:</strong>
+                                    <ul>
+                                        <li><strong>Input Tax Credit (ITC):</strong> Sections 16, 17(5) blocked credits, and Rule 42/43 apportionment are extremely critical.</li>
+                                        <li><strong>Place & Value of Supply:</strong> Practice determination of domestic and cross-border transactions.</li>
+                                        <li>Customs & FTP carry 25-30 marks. They are highly scoring; do not leave them for the last moment.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- IBS Accordion -->
+                        <div class="accordion-item" onclick="app.toggleAccordion(this)">
+                            <button class="accordion-header">
+                                <span>Paper 6: Integrated Business Solutions (IBS)</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+                            <div class="accordion-content">
+                                <div class="accordion-body">
+                                    <strong>AIR 1 Focus Areas:</strong>
+                                    <ul>
+                                        <li>This is a case-study based open book exam combining FR, AFM, Audit, DT, IDT, and Corporate Laws.</li>
+                                        <li><strong>Cross-Referencing:</strong> Master the skill of identifying which Ind AS, Section of Income Tax, or GST provision applies to a single corporate scenario.</li>
+                                        <li>Practice solving Case Study Digests published by ICAI. Speed reading and index preparation are keys to success.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Scientific Methods -->
+                <div class="insights-panel glass-panel">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-flask text-accent"></i> Scientific Study Methods</h3>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Employ these scientifically proven learning models to maximize retention and exam performance.</p>
+                    
+                    <div class="scientific-cards">
+                        <div class="scientific-card">
+                            <h4><i class="fa-solid fa-brain"></i> Active Recall</h4>
+                            <p>Instead of passively reading notes, close the book and write down everything you remember, or explain it aloud. Testing your memory strengthens neural connections and builds retrieval speed.</p>
+                        </div>
+                        <div class="scientific-card">
+                            <h4><i class="fa-solid fa-hourglass-half"></i> Spaced Repetition</h4>
+                            <p>Review topics at expanding intervals (1 day, 3 days, 7 days, 30 days) to disrupt the forgetting curve. Re-studying right when you are about to forget cements the information into long-term memory.</p>
+                        </div>
+                        <div class="scientific-card">
+                            <h4><i class="fa-solid fa-chalkboard-user"></i> Feynman Technique</h4>
+                            <p>Try explaining a complex Ind AS or Tax section to a layman or non-finance friend. Simplifying the concepts forces you to identify gaps in your own understanding and clarifies your thinking.</p>
+                        </div>
+                        <div class="scientific-card">
+                            <h4><i class="fa-solid fa-battery-half"></i> Pomodoro Protocol</h4>
+                            <p>Work in high-intensity, distraction-free blocks (Engross Mode) followed by cognitive relief breaks (Regain Mode). This prevents mental fatigue and keeps focus consistently high over long study days.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DAILY HEALTH TRACKER TAB -->
+        <section id="dailytracker" class="tab-content">
+            <div class="tab-content-wrapper" id="dailytracker-wrapper" style="position: relative; width: 100%; flex-grow: 1; display: flex; flex-direction: column;">
+                <!-- Locked Overlay -->
+                <div id="dailytracker-lock-overlay" class="locked-feature-overlay" style="display: none;">
+                    <i class="fa-solid fa-lock locked-icon"></i>
+                    <div class="locked-title">Daily Health Tracker Locked</div>
+                    <div class="locked-description">Maintain your study focus to level up! Reach <strong>Level 5: Concept Commander</strong> (Commander Shepard) to unlock daily health tracking.</div>
+                </div>
+
+                <div class="welcome-banner">
+                    <div class="welcome-text">
+                        <h1><i class="fa-solid fa-heart-pulse text-accent"></i> Daily Health Tracker</h1>
+                        <p class="subtitle">Monitor sleep, hydration, screen-time, and physical health to maintain study stamina</p>
+                    </div>
+                </div>
+
+                <div class="tracker-grid-layout">
+                    <!-- Left Column: Add Daily Log Form -->
+                    <div class="glass-panel">
+                        <h3><i class="fa-solid fa-plus-circle text-accent"></i> Log Today's Metrics</h3>
+                        <form id="daily-log-form" class="planner-form" style="margin-top: 1rem;">
+                            <div class="form-group">
+                                <label for="log-date">Log Date</label>
+                                <input type="date" id="log-date" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="log-sleep">Sleep (Hours)</label>
+                                    <input type="number" id="log-sleep" min="0" max="24" step="0.5" placeholder="e.g., 7" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="log-water">Water (Glasses)</label>
+                                    <input type="number" id="log-water" min="0" max="30" placeholder="e.g., 8" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="log-exercise">Exercise (Mins)</label>
+                                    <input type="number" id="log-exercise" min="0" max="300" placeholder="e.g., 30" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="log-screentime">Screen-Time (Mins)</label>
+                                    <input type="number" id="log-screentime" min="0" max="1440" placeholder="e.g., 45" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-full">
+                                <i class="fa-solid fa-heart"></i> Save Daily Log
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Right Column: Historical Logs -->
+                    <div class="glass-panel">
+                        <div class="panel-header">
+                            <h3><i class="fa-solid fa-history text-accent"></i> Daily Health History</h3>
+                        </div>
+                        <div id="daily-logs-list" style="max-height: 400px; overflow-y: auto; padding-right: 0.5rem;">
+                            <!-- Populated dynamically by JS -->
+                            <div class="empty-state">
+                                <i class="fa-solid fa-calendar-days"></i>
+                                <p>No health logs saved yet. Start tracking today!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HOBBY & EXTRACURRICULAR TRACKER TAB -->
+        <section id="hobbies" class="tab-content">
+            <div class="tab-content-wrapper" id="hobbies-wrapper" style="position: relative; width: 100%; flex-grow: 1; display: flex; flex-direction: column;">
+                <!-- Locked Overlay -->
+                <div id="hobbies-lock-overlay" class="locked-feature-overlay" style="display: none;">
+                    <i class="fa-solid fa-lock locked-icon"></i>
+                    <div class="locked-title">Hobby Tracker Locked</div>
+                    <div class="locked-description">Maintain your study focus to level up! Reach <strong>Level 6: Audit Assassin</strong> (Ezio Auditore) to unlock extracurricular and hobby logging.</div>
+                </div>
+
+                <div class="welcome-banner">
+                    <div class="welcome-text">
+                        <h1><i class="fa-solid fa-icons text-accent"></i> Hobby & Extracurricular Tracker</h1>
+                        <p class="subtitle">Log off-desk activities to balance your mental health and sustain revision focus</p>
+                    </div>
+                </div>
+
+                <div class="hobby-grid-layout">
+                    <!-- Left Column: Log Activity Form -->
+                    <div class="glass-panel">
+                        <h3><i class="fa-solid fa-plus-circle text-accent"></i> Log Hobby Activity</h3>
+                        <form id="hobby-log-form" class="planner-form" style="margin-top: 1rem;">
+                            <div class="form-group">
+                                <label for="hobby-name">Activity / Hobby</label>
+                                <input type="text" id="hobby-name" placeholder="e.g., Playing Guitar, Jogging, Meditation" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="hobby-date">Date</label>
+                                    <input type="date" id="hobby-date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="hobby-duration">Duration (Mins)</label>
+                                    <input type="number" id="hobby-duration" min="1" max="480" placeholder="e.g., 20" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="hobby-mood">How do you feel after?</label>
+                                <select id="hobby-mood" required>
+                                    <option value="Refreshed" selected>😊 Refreshed & Focused</option>
+                                    <option value="Relaxed">😌 Calm & Relaxed</option>
+                                    <option value="Energetic">⚡ Energetic & Pumped</option>
+                                    <option value="Tired">🥱 Tired but Satisfied</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-full">
+                                <i class="fa-solid fa-face-smile"></i> Save Activity Log
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Right Column: Extracurricular List -->
+                    <div class="glass-panel">
+                        <div class="panel-header">
+                            <h3><i class="fa-solid fa-heart-pulse text-accent"></i> Extracurricular Activities Log</h3>
+                        </div>
+                        <div id="hobbies-logs-list" style="max-height: 400px; overflow-y: auto; padding-right: 0.5rem;">
+                            <!-- Populated dynamically by JS -->
+                            <div class="empty-state">
+                                <i class="fa-solid fa-gamepad"></i>
+                                <p>No activities logged yet. Take a break and write down a hobby!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- NOTEBOOKLM HUB TAB -->
+        <section id="notebooklm" class="tab-content">
+            <div class="notebooklm-layout">
+                <!-- Explanation / Tutorial -->
+                <div class="glass-panel notebooklm-intro">
+                    <div class="brain-banner">
+                        <i class="fa-solid fa-brain brain-giant-icon"></i>
+                        <h2>NotebookLM CA Study Assistant</h2>
+                        <span class="badge-lm">AI Companion</span>
+                    </div>
+                    <p><strong>Google NotebookLM</strong> is a powerful AI research assistant that acts as a personalized expert based on your uploaded sources. By combining your real study data from this tracker with your notes, you can create a powerful study partnership.</p>
+                    
+                    <div class="notebook-steps">
+                        <h3>How to integrate and study:</h3>
+                        <ol>
+                            <li>
+                                <span class="step-num">1</span>
+                                <div class="step-text">
+                                    <strong>Export your Study Source:</strong> Click the button below to compile and download your active targets, revisions, weak areas, and logs into a single structured Markdown file.
+                                </div>
+                            </li>
+                            <li>
+                                <span class="step-num">2</span>
+                                <div class="step-text">
+                                    <strong>Open Google NotebookLM:</strong> Launch the official NotebookLM site and create a dedicated notebook for your CA Final attempt.
+                                </div>
+                            </li>
+                            <li>
+                                <span class="step-num">3</span>
+                                <div class="step-text">
+                                    <strong>Upload and Ingest:</strong> Upload your downloaded markdown file along with ICAI Study Materials, Revision Test Papers (RTPs), or your class notes.
+                                </div>
+                            </li>
+                            <li>
+                                <span class="step-num">4</span>
+                                <div class="step-text">
+                                    <strong>Generate Custom Assets:</strong> Ask NotebookLM to generate a <strong>Audio Overview (Podcast)</strong>, create revision summaries for your weak chapters, or draft daily quizzes based on your study history!
+                                </div>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <div class="notebooklm-actions">
+                        <button class="btn btn-primary btn-large" onclick="app.exportNotebookLMSource()">
+                            <i class="fa-solid fa-download"></i> Export Study Source File (.md)
+                        </button>
+                        <a href="https://notebooklm.google/" target="_blank" class="btn btn-secondary btn-large btn-link-out">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Google NotebookLM <i class="fa-solid fa-external-link"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Export Preview Panel -->
+                <div class="glass-panel notebooklm-preview">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-eye text-accent"></i> Study Source Preview</h3>
+                        <button class="btn btn-secondary btn-small" onclick="app.copyNotebookLMClipboard()">
+                            <i class="fa-solid fa-copy"></i> Copy to Clipboard
+                        </button>
+                    </div>
+                    <div class="preview-box">
+                        <pre id="notebooklm-preview-text">Add some tasks, track focus sessions, and your formatted Study Source preview will appear here...</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ANALYTICS TAB -->
+        <section id="analytics" class="tab-content">
+            <div class="analytics-header">
+                <h2><i class="fa-solid fa-chart-bar text-accent"></i> Focus Analytics Dashboard</h2>
+                <p class="subtitle">Review your focus dynamics, ratios between deep study (Engross) and revision (Regain), and paper coverage details.</p>
+            </div>
+
+            <!-- Charts Container Grid -->
+            <div class="analytics-charts-grid">
+                <!-- Daily Trend -->
+                <div class="glass-panel chart-card">
+                    <h3><i class="fa-solid fa-calendar-day text-accent"></i> Daily Focus Trend (Last 7 Days)</h3>
+                    <div class="chart-container">
+                        <canvas id="chart-daily-trend"></canvas>
+                    </div>
+                </div>
+
+                <!-- Focus Style Ratio -->
+                <div class="glass-panel chart-card">
+                    <h3><i class="fa-solid fa-circle-nodes text-accent"></i> Focus Styles: Engross vs Regain</h3>
+                    <div class="chart-container">
+                        <canvas id="chart-focus-ratio"></canvas>
+                    </div>
+                </div>
+
+                <!-- Subject Breakdown -->
+                <div class="glass-panel chart-card full-width-chart">
+                    <h3><i class="fa-solid fa-book-bookmark text-accent"></i> Subject Wise Distribution (Total Hours Focused)</h3>
+                    <div class="chart-container-large">
+                        <canvas id="chart-subject-distribution"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Study Logs Table -->
+            <div class="glass-panel study-logs-panel">
+                <div class="panel-header">
+                    <h3><i class="fa-solid fa-history text-accent"></i> Focus Sessions Log</h3>
+                    <button class="btn btn-secondary btn-small text-warn" onclick="app.clearStudyLogsConfirm()">
+                        <i class="fa-solid fa-trash-can"></i> Clear Logs
+                    </button>
+                </div>
+                <div class="logs-table-wrapper">
+                    <table class="logs-table">
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>CA Paper</th>
+                                <th>Focus Type</th>
+                                <th>Duration</th>
+                                <th>Target Link</th>
+                            </tr>
+                        </thead>
+                        <tbody id="study-logs-table-body">
+                            <tr>
+                                <td colspan="5" class="empty-table-row">No sessions logged yet. Complete a Pomodoro session to log time!</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- USER GUIDE TAB -->
+        <section id="userguide" class="tab-content">
+            <div class="welcome-banner">
+                <div class="welcome-text">
+                    <h1><i class="fa-solid fa-circle-question text-accent"></i> Param User Guide & Strategies</h1>
+                    <p class="subtitle">Distraction-Free Tutorial: Study effectively, defeat exam obstacles, and master the CA Final Syllabus.</p>
+                </div>
+            </div>
+
+            <div class="user-guide-grid" style="display: grid; grid-template-columns: 280px 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+                <!-- Table of Contents -->
+                <div class="glass-panel" style="padding: 1.25rem; height: fit-content; position: sticky; top: 1.5rem;">
+                    <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--accent-color); margin-bottom: 1rem; border-bottom: 1px solid var(--panel-border); padding-bottom: 0.5rem;"><i class="fa-solid fa-list"></i> Guide Index</h3>
+                    <ul class="guide-toc" style="list-style: none; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.85rem; padding: 0; margin: 0;">
+                        <li><a href="#guide-focus" style="color: var(--text-primary); text-decoration: none; font-weight: 600; display: block; padding: 0.25rem 0.5rem; border-radius: 4px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'"><i class="fa-solid fa-brain" style="color: var(--engross-color); margin-right: 0.5rem;"></i> 1. Focus Methods (Scientific)</a></li>
+                        <li><a href="#guide-skills" style="color: var(--text-primary); text-decoration: none; font-weight: 600; display: block; padding: 0.25rem 0.5rem; border-radius: 4px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'"><i class="fa-solid fa-graduation-cap" style="color: var(--accent-color); margin-right: 0.5rem;"></i> 2. Study Tools & Recall</a></li>
+                        <li><a href="#guide-gamification" style="color: var(--text-primary); text-decoration: none; font-weight: 600; display: block; padding: 0.25rem 0.5rem; border-radius: 4px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'"><i class="fa-solid fa-gamepad" style="color: var(--success-color); margin-right: 0.5rem;"></i> 3. Gamification Mechanics</a></li>
+                        <li><a href="#guide-workspaces" style="color: var(--text-primary); text-decoration: none; font-weight: 600; display: block; padding: 0.25rem 0.5rem; border-radius: 4px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'"><i class="fa-solid fa-cubes" style="color: var(--regain-color); margin-right: 0.5rem;"></i> 4. Multiple Workspaces</a></li>
+                        <li><a href="#guide-saves" style="color: var(--text-primary); text-decoration: none; font-weight: 600; display: block; padding: 0.25rem 0.5rem; border-radius: 4px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'"><i class="fa-solid fa-floppy-disk" style="color: var(--text-muted); margin-right: 0.5rem;"></i> 5. Save Exports & Backups</a></li>
+                    </ul>
+                </div>
+
+                <!-- Guide Contents -->
+                <div class="user-guide-content" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <!-- Focus Section -->
+                    <div class="glass-panel" id="guide-focus" style="padding: 1.5rem;">
+                        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--engross-color); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;"><i class="fa-solid fa-brain"></i> 1. Scientific Focus Methods (Engross vs Regain)</h2>
+                        <div style="line-height: 1.6; font-size: 0.9rem; color: var(--text-primary); display: flex; flex-direction: column; gap: 1rem;">
+                            <p>To prepare effectively for the CA Final exam without burning out, the application utilizes a dual-focus framework backed by cognitive psychology:</p>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem;">
+                                <div style="background: var(--engross-bg); border: 1px solid var(--engross-color); border-radius: 8px; padding: 1rem;">
+                                    <h3 style="color: var(--engross-color); font-size: 1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-bolt"></i> Engross Mode (Deep Study)</h3>
+                                    <p style="font-size: 0.8rem; color: var(--text-muted);">Dedicated to intensive learning, solving complex problems, and initial syllabus readings. Recommended block: <strong>25 - 50 minutes</strong>. No distractions allowed.</p>
+                                </div>
+                                <div style="background: var(--regain-bg); border: 1px solid var(--regain-color); border-radius: 8px; padding: 1rem;">
+                                    <h3 style="color: var(--regain-color); font-size: 1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-rotate-left"></i> Regain Mode (Revision & Break)</h3>
+                                    <p style="font-size: 0.8rem; color: var(--text-muted);">Dedicated to consolidation, active recall testing, summarizing, or taking deliberate cognitive breaks. Recommended block: <strong>5 - 15 minutes</strong>.</p>
+                                </div>
+                            </div>
+                            <p><strong>Focus Sound Synthesizer:</strong> Utilize the focus clock audio widget in the Focus Timer tab to block external noises. Select from White Noise, Brown Noise, Beta Binaural Beats (inducing focus brainwaves), or the procedural <strong>Lofi Study Radio</strong> (generating offline chill jazz chords and retro beats dynamically) to keep your focus sharp.</p>
+                        </div>
+                    </div>
+
+                    <!-- Recall Section -->
+                    <div class="glass-panel" id="guide-skills" style="padding: 1.5rem;">
+                        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--accent-color); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;"><i class="fa-solid fa-graduation-cap"></i> 2. Active Recall & Revision Matrix</h2>
+                        <div style="line-height: 1.6; font-size: 0.9rem; color: var(--text-primary); display: flex; flex-direction: column; gap: 1rem;">
+                            <p>Traditional passive reading leads to rapid memory decay. Param structures active study through specific revision metrics:</p>
+                            <p><strong>Spaced Repetition intervals:</strong> The "Revision Rounds" tab divides your study into 4 structured stages: Initial reading, Round 1 Detailed study, Round 2 Summarized key notes recall, and Round 3 Mock Exam / Last Day Revision (LDR). Mark cells on each CA Paper to track your total progress metrics automatically on the Dashboard.</p>
+                            <p><strong>The Feynman Technique Editor:</strong> Located under the Study Hub, this editor allows you to write summary explanations of complex auditing clauses, taxation provisions, or financial reporting standards in simple terms, as if explaining to a beginner. This identifies gaps in your conceptual understanding immediately.</p>
+                        </div>
+                    </div>
+
+                    <!-- Gamification Section -->
+                    <div class="glass-panel" id="guide-gamification" style="padding: 1.5rem;">
+                        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--success-color); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;"><i class="fa-solid fa-gamepad"></i> 3. Gamification Mechanics & Quest Campaigns</h2>
+                        <div style="line-height: 1.6; font-size: 0.9rem; color: var(--text-primary); display: flex; flex-direction: column; gap: 1rem;">
+                            <p>To incentivize consistent daily study, Param turns your preparation into an interactive RPG story campaign where you play as a character preparing for CA Finals:</p>
+                            <ul style="padding-left: 1.25rem; font-size: 0.85rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.5rem; margin: 0;">
+                                <li><strong>Earn XP:</strong> Earning XP increases your level up to Level 10. You gain <strong>100 XP</strong> for completing Pomodoro timers, <strong>200 XP</strong> for completing planner targets, and <strong>50 XP</strong> for logging health metrics or hobby updates.</li>
+                                <li><strong>Skill Locks & Themes:</strong> Certain features are locked initially and unlock as you level up. For example, the Daily Health Tracker unlocks at Level 5, the Hobby Tracker at Level 6, Lofi Synthesizer at Level 7, and premium app color themes (Emerald, Sunset, Cyber) at higher levels.</li>
+                                <li><strong>Story Campaign Bosses:</strong> You fight procrastination monsters represented as "Syllabus Bosses" (e.g. Overtime Overlord, Ind AS Fog, Finance Act Golem). Completing Pomodoros and tasks deals damage to the boss. Defeating a boss clears the chapter and rewards bonus XP!</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Workspaces Section -->
+                    <div class="glass-panel" id="guide-workspaces" style="padding: 1.5rem;">
+                        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--regain-color); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;"><i class="fa-solid fa-cubes"></i> 4. Multiple Workspaces & Character Setup</h2>
+                        <div style="line-height: 1.6; font-size: 0.9rem; color: var(--text-primary); display: flex; flex-direction: column; gap: 1rem;">
+                            <p>Create separate workspaces to track different attempts, mock exam groups, or study plans independently. Each workspace holds isolated task lists, revision matrices, health logs, XP levels, and custom themes.</p>
+                            <p>When creating a workspace, customize your profile by choosing a famous PC game character avatar (e.g., Steve, Gordon Freeman, Lara Croft, Master Chief) and a custom username. This character represents your study avatar on the Dashboard, progressing through game ranks as you level up.</p>
+                        </div>
+                    </div>
+
+                    <!-- Save & Backups Section -->
+                    <div class="glass-panel" id="guide-saves" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+                        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-muted); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;"><i class="fa-solid fa-floppy-disk"></i> 5. Save Exports, Auto-Backups & Sync</h2>
+                        <div style="line-height: 1.6; font-size: 0.9rem; color: var(--text-primary); display: flex; flex-direction: column; gap: 1rem;">
+                            <p>Keep your data secure without relying on online connectivity:</p>
+                            <p><strong>Export/Import Saves:</strong> Use the "Saves & Backups" tab in Settings to export your progress database to a local file (`.json`). You can copy this file to any secondary device and import it to restore your exact study logs and levels.</p>
+                            <p><strong>Automated Daily Backups:</strong> The application creates an automatic timestamped snapshot of your databases once every day in `AppData/Roaming/Param/backups`. Click "Open Daily Backups Folder" in settings to find and restore previous files. Toggle "Auto-cleanup" in settings to remove files older than 30 days automatically and conserve disk space.</p>
+                            <p><strong>Google Drive Sync:</strong> Connect your personal Google account in settings to automatically sync and store your encrypted backups in your personal Drive appDataFolder, accessible only by your local app.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- SETTINGS MODAL -->
+    <div class="modal-backdrop" id="settings-modal">
+        <div class="modal glass-panel modal-large">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-gear text-accent"></i> Application Settings</h3>
+                <button class="modal-close" onclick="app.toggleSettingsModal(false)"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body settings-layout">
+                <!-- Left Tabs Sidebar -->
+                <div class="settings-tabs">
+                    <button class="settings-tab-btn active" data-settings-tab="general" onclick="app.switchSettingsTab('general')">
+                        <i class="fa-solid fa-sliders"></i> General
+                    </button>
+                    <button class="settings-tab-btn" data-settings-tab="avatar" onclick="app.switchSettingsTab('avatar')">
+                        <i class="fa-solid fa-user-ninja"></i> Character Avatar
+                    </button>
+                    <button class="settings-tab-btn" data-settings-tab="security" onclick="app.switchSettingsTab('security')">
+                        <i class="fa-solid fa-shield-halved"></i> Security & Sync
+                    </button>
+                    <button class="settings-tab-btn" data-settings-tab="backups" onclick="app.switchSettingsTab('backups')">
+                        <i class="fa-solid fa-floppy-disk"></i> Saves & Backups
+                    </button>
+                    <button class="settings-tab-btn" data-settings-tab="shortcuts" onclick="app.switchSettingsTab('shortcuts')">
+                        <i class="fa-solid fa-keyboard"></i> Keyboard Shortcuts
+                    </button>
+                    <button class="settings-tab-btn" data-settings-tab="support" onclick="app.switchSettingsTab('support')">
+                        <i class="fa-solid fa-bug"></i> Support & Logs
+                    </button>
+                </div>
+
+                <!-- Right Contents Panel -->
+                <div class="settings-tab-contents">
+                    <!-- GENERAL TAB -->
+                    <div class="settings-tab-panel active" id="settings-panel-general">
+                        <div class="form-group">
+                            <label for="settings-attempt">Target CA Final Exam Attempt</label>
+                            <select id="settings-attempt">
+                                <option value="Nov 2026">November 2026</option>
+                                <option value="May 2027">May 2027</option>
+                                <option value="Nov 2027">November 2027</option>
+                                <option value="May 2028">May 2028</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="settings-exam-date">Custom Exam Start Date (Optional)</label>
+                            <input type="date" id="settings-exam-date">
+                        </div>
+                        <div class="form-group">
+                            <label for="settings-daily-goal">Daily Study Goal (Hours)</label>
+                            <input type="number" id="settings-daily-goal" min="1" max="18" value="8">
+                        </div>
+                        <div class="form-group">
+                            <label for="settings-theme">App Theme Preset</label>
+                            <select id="settings-theme">
+                                <option value="midnight">Midnight Slate (Default Dark)</option>
+                                <option value="alabaster">Light Alabaster (Clean Light)</option>
+                                <option value="emerald">Emerald Zen (Calming Green)</option>
+                                <option value="sunset">Sunset Amber (Energizing Orange)</option>
+                                <option value="cyber">Cyber Neon (High Contrast Dark)</option>
+                            </select>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="settings-auto-switch">
+                            <label for="settings-auto-switch">Automatically switch between Engross & Regain modes</label>
+                        </div>
+                    </div>
+
+                    <!-- AVATAR TAB -->
+                    <div class="settings-tab-panel" id="settings-panel-avatar">
+                        <div class="form-group" style="margin-bottom: 1.25rem;">
+                            <label for="settings-username-input">Custom Username</label>
+                            <input type="text" id="settings-username-input" placeholder="Enter custom username" style="background: var(--input-bg); border: 1px solid var(--panel-border); color: var(--text-primary); font-family: inherit; font-size: 0.95rem; padding: 0.75rem 1rem; border-radius: 10px; width: 100%;">
+                        </div>
+                        
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--accent-color); margin-bottom: 0.5rem;"><i class="fa-solid fa-user-ninja"></i> Evolving Character Status</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.3; margin-bottom: 1rem;">Your character avatar and rank evolve automatically as you earn XP in this workspace. There is no manual picker.</p>
+                        
+                        <!-- Display current character info -->
+                        <div class="glass-panel" style="padding: 1rem; display: flex; align-items: center; gap: 1rem; margin-top: 0.5rem; border: 1px solid var(--panel-border-hover);">
+                            <img id="settings-avatar-preview" src="" style="width: 70px; height: 70px; border-radius: 10px; border: 2px solid var(--accent-color); object-fit: cover; box-shadow: 0 0 10px var(--accent-glow);">
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary);" id="settings-avatar-name">Steve</div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted);" id="settings-avatar-game">Minecraft</div>
+                                <div style="font-size: 0.82rem; font-weight: 600; color: var(--accent-color); margin-top: 0.25rem;" id="settings-avatar-rank">Novice Initiate (Level 1)</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Evolution progress -->
+                        <div style="margin-top: 1.25rem;" id="settings-avatar-evolution-progress">
+                            <!-- Populated in app.js -->
+                        </div>
+                    </div>
+
+                    <!-- SECURITY & SYNC TAB -->
+                    <div class="settings-tab-panel" id="settings-panel-security">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--accent-color); margin-bottom: 0.5rem;"><i class="fa-solid fa-shield-halved"></i> Admin Access Security</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.3; margin-bottom: 0.75rem;">Enable password protection to lock settings configuration, cloud sync, task revisions, and target edits.</p>
+                        
+                        <div class="form-group checkbox-group" style="margin-bottom: 1rem;">
+                            <input type="checkbox" id="settings-admin-lock-enable">
+                            <label for="settings-admin-lock-enable">Enable Admin Lock Protection</label>
+                        </div>
+                        
+                        <div class="form-group" id="settings-admin-password-group" style="margin-bottom: 1rem;">
+                            <label for="settings-admin-password">Set Admin Passcode</label>
+                            <input type="password" id="settings-admin-password" placeholder="Enter passcode to enable / change" style="background: var(--input-bg); border: 1px solid var(--panel-border); color: var(--text-primary); font-family: inherit; font-size: 0.95rem; padding: 0.75rem 1rem; border-radius: 10px; width: 100%;">
+                        </div>
+
+                        <div class="settings-divider" style="margin: 1.5rem 0 1rem; border-top: 1px solid var(--panel-border); padding-top: 1rem;"></div>
+
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--accent-color); margin-bottom: 0.5rem;"><i class="fa-solid fa-cloud"></i> Google Drive Cloud Sync</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.3; margin-bottom: 0.75rem;">To enable sync, create a Desktop OAuth Client ID in Google Cloud Console and paste the details below. Authorize to save data securely to your Drive.</p>
+                        
+                        <div class="form-group">
+                            <label for="settings-google-client-id">Google Client ID</label>
+                            <input type="text" id="settings-google-client-id" placeholder="Paste Client ID (e.g., xxxxxxx.apps.googleusercontent.com)">
+                        </div>
+                        <div class="form-group">
+                            <label for="settings-google-client-secret">Google Client Secret</label>
+                            <input type="password" id="settings-google-client-secret" placeholder="Paste Client Secret" style="background: var(--input-bg); border: 1px solid var(--panel-border); color: var(--text-primary); font-family: inherit; font-size: 0.95rem; padding: 0.75rem 1rem; border-radius: 10px; width: 100%;">
+                        </div>
+
+                        <div class="cloud-actions-box" style="background: rgba(255,255,255,0.02); border: 1px solid var(--panel-border); border-radius: 10px; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+                            <div class="cloud-connection-status" style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem;">
+                                <span>Status: <strong id="cloud-status-text" class="text-warn">Disconnected</strong></span>
+                                <button id="cloud-auth-btn" class="btn btn-secondary btn-small" type="button">Connect Drive</button>
+                            </div>
+                            <div id="cloud-sync-buttons" style="display:none; gap: 0.5rem; margin-top: 0.25rem;">
+                                <button id="cloud-upload-btn" class="btn btn-primary btn-small" style="flex:1;" type="button"><i class="fa-solid fa-cloud-arrow-up"></i> Sync Up</button>
+                                <button id="cloud-download-btn" class="btn btn-secondary btn-small" style="flex:1;" type="button"><i class="fa-solid fa-cloud-arrow-down"></i> Restore Down</button>
+                            </div>
+                            <div id="cloud-sync-log-box" style="font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--text-muted); background:rgba(0,0,0,0.2); border:1px solid var(--panel-border); border-radius:6px; padding:0.4rem; max-height:60px; overflow-y:auto; margin-top:0.25rem; display:none;">
+                                Ready.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BACKUPS & SAVES TAB -->
+                    <div class="settings-tab-panel" id="settings-panel-backups">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--accent-color); margin-bottom: 0.5rem;"><i class="fa-solid fa-file-export"></i> Import & Export Progress</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.3; margin-bottom: 0.75rem;">Export your current study database, tasks, and history to a backup file, or import progress from an existing save file.</p>
+                        
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                            <button class="btn btn-primary btn-full" type="button" onclick="app.handleExportProgress()"><i class="fa-solid fa-file-export"></i> Export Progress File</button>
+                            <button class="btn btn-secondary btn-full" type="button" onclick="app.handleImportProgress()"><i class="fa-solid fa-file-import"></i> Import Progress File</button>
+                        </div>
+
+                        <div class="settings-divider" style="margin: 1.5rem 0 1rem; border-top: 1px solid var(--panel-border); padding-top: 1rem;"></div>
+
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--accent-color); margin-bottom: 0.5rem;"><i class="fa-solid fa-history"></i> Automatic Daily Backups</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.3; margin-bottom: 0.75rem;">The app automatically takes daily snapshots of your progress. You can open the local folder in explorer to recover older saves.</p>
+                        
+                        <div class="form-group checkbox-group" style="margin-bottom: 1rem;">
+                            <input type="checkbox" id="settings-auto-cleanup-backups">
+                            <label for="settings-auto-cleanup-backups">Auto-cleanup backups older than 30 days</label>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                            <button class="btn btn-secondary btn-full" type="button" onclick="app.handleOpenBackupsFolder()"><i class="fa-solid fa-folder-open"></i> Open Daily Backups Folder</button>
+                        </div>
+
+                        <div class="settings-divider" style="margin: 1.5rem 0 1rem; border-top: 1px solid var(--panel-border); padding-top: 1rem;"></div>
+
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--warn-color); margin-bottom: 0.5rem;"><i class="fa-solid fa-trash-can"></i> Workspace Operations</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.3; margin-bottom: 0.75rem;">Permanently remove the active workspace. Note: You cannot delete the default workspace if it is the only one remaining.</p>
+                        <button class="btn btn-secondary btn-small text-warn" type="button" onclick="app.handleDeleteCurrentWorkspace()"><i class="fa-solid fa-trash-can"></i> Delete Current Workspace</button>
+                    </div>
+
+                    <!-- KEYBOARD SHORTCUTS TAB -->
+                    <div class="settings-tab-panel" id="settings-panel-shortcuts">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--accent-color); margin-bottom: 0.75rem;"><i class="fa-solid fa-keyboard"></i> Quick Shortcuts Reference</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.3; margin-bottom: 1rem;">Use these keyboard shortcuts to navigate and control the focus tracker quickly without distractions:</p>
+                        
+                        <div class="shortcut-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <div class="shortcut-item" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; font-weight: 500;">Start / Pause Pomodoro Clock</span>
+                                <kbd style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; padding: 2px 8px; font-family: monospace; font-weight: bold; font-size: 0.8rem; box-shadow: 0 2px 0 rgba(0,0,0,0.2);">Space</kbd>
+                            </div>
+                            <div class="shortcut-item" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; font-weight: 500;">Reset Focus Timer</span>
+                                <kbd style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; padding: 2px 8px; font-family: monospace; font-weight: bold; font-size: 0.8rem; box-shadow: 0 2px 0 rgba(0,0,0,0.2);">R</kbd>
+                            </div>
+                            <div class="shortcut-item" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; font-weight: 500;">Skip Current Focus / Break</span>
+                                <kbd style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; padding: 2px 8px; font-family: monospace; font-weight: bold; font-size: 0.8rem; box-shadow: 0 2px 0 rgba(0,0,0,0.2);">S</kbd>
+                            </div>
+                            <div class="shortcut-item" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; font-weight: 500;">Switch Active Workspace</span>
+                                <kbd style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; padding: 2px 8px; font-family: monospace; font-weight: bold; font-size: 0.8rem; box-shadow: 0 2px 0 rgba(0,0,0,0.2);">Ctrl + Shift + W</kbd>
+                            </div>
+                            <div class="shortcut-item" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; font-weight: 500;">Toggle User Guide & Strategies</span>
+                                <kbd style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; padding: 2px 8px; font-family: monospace; font-weight: bold; font-size: 0.8rem; box-shadow: 0 2px 0 rgba(0,0,0,0.2);">Ctrl + Shift + H</kbd>
+                            </div>
+                            <div class="shortcut-item" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; font-weight: 500;">Close Current Modal Popup</span>
+                                <kbd style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; padding: 2px 8px; font-family: monospace; font-weight: bold; font-size: 0.8rem; box-shadow: 0 2px 0 rgba(0,0,0,0.2);">Esc</kbd>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SUPPORT & DIAGNOSTICS TAB -->
+                    <div class="settings-tab-panel" id="settings-panel-support">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--accent-color); margin-bottom: 0.5rem;"><i class="fa-solid fa-bug"></i> Report Bugs & Errors</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.3; margin-bottom: 0.75rem;">Submit a bug report. A state database snapshot will be attached automatically to help diagnose the issue.</p>
+                        
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label for="bug-description-input">Bug / Error Description</label>
+                            <textarea id="bug-description-input" placeholder="Describe the error, what you were doing, or steps to reproduce..." style="background: var(--input-bg); border: 1px solid var(--panel-border); color: var(--text-primary); font-family: inherit; font-size: 0.95rem; padding: 0.75rem 1rem; border-radius: 10px; width: 100%; height: 80px; resize: vertical;"></textarea>
+                        </div>
+                        <button class="btn btn-primary btn-small" type="button" onclick="app.handleBugSubmit()" style="margin-bottom: 1.5rem;"><i class="fa-solid fa-paper-plane"></i> Submit Bug Report</button>
+
+                        <div class="settings-divider" style="margin: 1.5rem 0 1rem; border-top: 1px solid var(--panel-border); padding-top: 1rem;"></div>
+
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--accent-color); margin-bottom: 0.5rem;"><i class="fa-solid fa-terminal"></i> Activity Log Console</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.3; margin-bottom: 0.75rem;">View diagnostic and operational activity logs generated by the app. These are stored locally.</p>
+                        
+                        <textarea id="diagnostics-log-box" readonly style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-primary); background: rgba(0,0,0,0.25); border: 1px solid var(--panel-border); border-radius: 10px; padding: 0.75rem; width: 100%; height: 150px; resize: none; margin-bottom: 1rem; white-space: pre-wrap; word-break: break-all;"></textarea>
+                        
+                        <div style="display: flex; gap: 1rem;">
+                            <button class="btn btn-secondary btn-full" type="button" onclick="app.refreshDiagnosticsLogs()"><i class="fa-solid fa-rotate"></i> Refresh Logs</button>
+                            <button class="btn btn-secondary btn-full text-warn" type="button" onclick="app.handleClearLogs()"><i class="fa-solid fa-trash-can"></i> Clear Logs</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="app.toggleSettingsModal(false)">Cancel</button>
+                <button class="btn btn-primary" onclick="app.saveSettings()">Save Configuration</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PASSCODE PROMPT MODAL -->
+    <div class="modal-backdrop" id="passcode-modal">
+        <div class="modal glass-panel" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-shield-halved text-accent"></i> Admin Authorization</h3>
+                <button class="modal-close" onclick="app.togglePasscodeModal(false)"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">This action is secured. Please enter the Admin Passcode to verify your identity.</p>
+                <div class="form-group" style="margin-bottom: 0.5rem;">
+                    <input type="password" id="admin-passcode-input" placeholder="Enter Admin Passcode" style="text-align: center; font-size: 1.1rem; letter-spacing: 4px;">
+                </div>
+                <div id="passcode-error-msg" style="color: var(--warn-color); font-size: 0.8rem; font-weight: 600; min-height: 1.25rem; margin-bottom: 0.5rem;"></div>
+            </div>
+            <div class="modal-footer" style="justify-content: center; gap: 1rem;">
+                <button class="btn btn-secondary" onclick="app.togglePasscodeModal(false)">Cancel</button>
+                <button class="btn btn-primary" onclick="app.verifyAdminPasscode()">Verify Action</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CREATE WORKSPACE MODAL -->
+    <div class="modal-backdrop" id="workspace-modal">
+        <div class="modal glass-panel" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-cubes text-accent"></i> Create New Workspace</h3>
+                <button class="modal-close" onclick="app.toggleWorkspaceModal(false)"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="workspace-form" onsubmit="event.preventDefault(); app.handleCreateWorkspace();">
+                    <div class="form-group">
+                        <label for="workspace-name-input">Workspace Name</label>
+                        <input type="text" id="workspace-name-input" placeholder="e.g., Nov 2026 Focus Run" required>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted); display: block;">Evolving Character Progression</label>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; margin-top: 0.25rem;">
+                            Your workspace starts with the Level 1 character (<strong>Steve - Minecraft</strong>). As you study and log focus sessions, your character will automatically evolve into other game heroes (up to Level 10 - <strong>Master Chief</strong>)!
+                        </p>
+                    </div>
+                    
+                    <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                        <button type="button" class="btn btn-secondary btn-full" onclick="app.toggleWorkspaceModal(false)">Cancel</button>
+                        <button type="submit" class="btn btn-primary btn-full">Create Workspace</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- LEVEL UP DISPLAY OVERLAY -->
+    <div class="level-up-banner" id="level-up-banner">
+        <div class="level-up-badge-large"><i class="fa-solid fa-trophy"></i></div>
+        <div class="level-up-title">LEVEL UP!</div>
+        <div class="level-up-subtitle" id="level-up-rank-text">Concept Commander</div>
+        <div class="level-up-text" id="level-up-desc-text">You have unlocked Commander Shepard and the Daily Health Tracker!</div>
+        <button class="btn btn-primary btn-full" onclick="document.getElementById('level-up-banner').classList.remove('active')">Acknowledge</button>
+    </div>
+
+    <!-- NOTIFICATION ALERT POPUP -->
+    <div id="toast-notification" class="toast">
+        <div class="toast-content">
+            <i class="fa-solid fa-bell toast-icon"></i>
+            <span class="toast-message" id="toast-msg">Session completed!</span>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
